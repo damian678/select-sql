@@ -1,0 +1,4 @@
+select id_szpitala, case when count(h.data_wypisu)>1 then 1213 
+else (select max(numer_ksiegi) from hospitalizacja p where p.id_szpitala=id_szpitala )
+end from hospitalizacja h join tymczasowa t using(id_szpitala) 
+where h.data_wypisu=t.data_wypisu group by id_szpitala order by id_szpitala;
