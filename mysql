@@ -1,0 +1,70 @@
+create table szpital(
+id_szpitala int primary key,
+nazwa varchar(50),
+czy_aktywny int(1));
+
+
+create table hospitalizacja (
+id_hosp int primary key,
+numer_ksiegi varchar(50), 
+data_wypisu date,
+id_szpitala int references szpital,
+id_pacjenta int);
+
+
+insert into szpital values (1,'aaa',1);
+insert into szpital values (2,'bbb',1);
+insert into szpital values (3,'ccc',0);
+insert into szpital values (4,'ddd',1);
+insert into szpital values (5,'eee',0);
+insert into szpital values (6,'fff',1);
+
+
+insert into hospitalizacja values (1,'1992-12-992-0',str_to_date('2012-07-22', '%Y-%m-%d'),1,1);
+insert into hospitalizacja values (2,'1993-12-9222-2',str_to_date('2009-09-24', '%Y-%m-%d'),1,2);
+insert into hospitalizacja values (3,'1952-13-9333-0',str_to_date('2012-07-22', '%Y-%m-%d'),1,3);
+insert into hospitalizacja values (4,'1942-13-9444-0',str_to_date('2018-01-26', '%Y-%m-%d'),2,6);
+insert into hospitalizacja values (5,'1922-12-9555-0',str_to_date('2018-01-26', '%Y-%m-%d'),2,8);
+insert into hospitalizacja values (6,'1988-11-9666-0',str_to_date('2012-12-12', '%Y-%m-%d'),3,10);
+insert into hospitalizacja values (7,'1988-14-9777-0',str_to_date('2014-03-21', '%Y-%m-%d'),4,12);
+insert into hospitalizacja values (8,'1911-13-9888-0',str_to_date('2015-07-12', '%Y-%m-%d'),5,14);
+insert into hospitalizacja values (9,'1922-12-9956-0',str_to_date('2001-10-01', '%Y-%m-%d'),6,19);
+insert into hospitalizacja values (10,'1933-12-9243-0',str_to_date('2012-07-22', '%Y-%m-%d'),1,21);
+
+create table tymczasowa (
+select id_szpitala,max(data_wypisu) as data from hospitalizacja group by
+id_szpitala);
+
+create table liczba_powtorzen(
+select t.id_szpitala, count(h.data_wypisu) as liczba from hospitalizacja h join 
+tymczasowa t on h.id_szpitala=t.id_szpitala where h.data_wypisu=t.data
+group by t.id_szpitala);
+
+create table ilosc_jeden(
+select t.id_szpitala, data from tymczasowa t left join liczba_powtorzen l on
+t.id_szpitala=l.id_szpitala where l.liczba=1);
+
+create table pozycje(
+select id_szpitala,max(CONVERT(SUBSTRING_INDEX(SUBSTRING_INDEX
+                                          (numer_ksiegi, "-", -2), "-", 1),
+                                           unSIGNED INTEGER)) as pozycja 
+from hospitalizacja group by id_szpitala);
+
+
+
+select l.id_szpitala, case when liczba>1 then
+pozycja else data end
+from liczba_powtorzen l left join pozycje p on
+l.id_szpitala=p.id_szpitala left join ilosc_jeden i 
+on i.id_szpitala=p.id_szpitala order by id_szpitala;
+
+select* from liczba_powtorzen;
+select * from pozycje;
+
+select * from ilosc_jeden;
+
+
+
+select * from tymczasowa;
+
+select * from hospitalizacja;
